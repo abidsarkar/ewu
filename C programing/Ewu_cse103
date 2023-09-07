@@ -1,0 +1,616 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h> // Only for Windows, use ncurses on Unix-like systems
+
+// Define a structure to store account information
+typedef struct
+{
+    char username[50];
+    char password[50];
+} Account;
+
+// Function to create an account and save it to a file
+void createAccount()
+{
+    Account newAccount;
+    printf("Enter a username: ");
+    scanf("%s", newAccount.username);
+
+    // Check if the username is already taken in the file
+    if (isUsernameTaken(newAccount.username))
+    {
+        printf("Username '%s' is already taken. Please choose a different username.\n", newAccount.username);
+        return createAccount(); // Return without creating the account
+    }
+
+    // Prompt for the password and check its length
+    do {
+        printf("Enter a password (4-6 characters): ");
+        scanf("%s", newAccount.password);
+
+        if (strlen(newAccount.password) < 4 || strlen(newAccount.password) > 6) {
+            printf("Password must be between 4 and 6 characters.\n");
+        }
+    } while (strlen(newAccount.password) < 4 || strlen(newAccount.password) > 6);
+
+    FILE* file = fopen("accounts.txt", "a");
+    if (file == NULL)
+    {
+        printf("Error: Unable to open the account file.\n");
+        return;
+    }
+
+    int success = fprintf(file, "%s %s\n", newAccount.username, newAccount.password);
+    if (success < 0)
+    {
+        printf("Error: Unable to write to the account file.\n");
+    }
+    else
+    {
+        printf("Account created successfully.\n");
+    }
+
+    fclose(file);
+
+    // Return to the main program
+    return;
+}
+
+// Function to check if a username is already taken in the file
+int isUsernameTaken(const char* username)
+{
+    FILE* file = fopen("accounts.txt", "r");
+    if (file == NULL)
+    {
+        printf("Error: Unable to open the account file.\n");
+        return 1; // Assume the username is taken to be safe
+    }
+
+    char fileUsername[50];
+    char filePassword[50];
+
+    while (fscanf(file, "%s %s", fileUsername, filePassword) != EOF)
+    {
+        if (strcmp(username, fileUsername) == 0)
+        {
+            fclose(file);
+            return 1; // Username is taken
+        }
+    }
+
+    fclose(file);
+    return 0; // Username is not taken
+}
+
+
+
+// Function to check if a username and password match in the file
+int login()
+{
+    char username[50];
+    char password[50];
+
+    printf("Enter your username: ");
+    scanf("%s", username);
+    printf("Enter your password: ");
+    scanf("%s", password);
+
+    FILE* file = fopen("accounts.txt", "r");
+    if (file == NULL)
+    {
+        printf("Error: Unable to open the account file.\n");
+        return 0; // Login failed
+    }
+
+    char fileUsername[50];
+    char filePassword[50];
+    int loggedIn = 0;
+
+    while (fscanf(file, "%s %s", fileUsername, filePassword) != EOF)
+    {
+        if (strcmp(username, fileUsername) == 0 && strcmp(password, filePassword) == 0)
+        {
+            loggedIn = 1; // Login successful
+            break;
+        }
+    }
+
+    fclose(file);
+    return loggedIn;
+}
+
+// Function prototypes
+void createAccount();
+int login();
+void sieve();
+void board();
+int valid_input();
+int checkwin();
+void HUMAN_TO_HUMAN();
+void playSnackGame(); // Declare the playSnackGame function
+
+
+
+/////////Tic tac gaeme
+// Define an array to represent the Tic Tac Toe board.
+char square[10];
+// Function to handle a game between two human players
+void HUMAN_TO_HUMAN()
+{
+    int ans;
+    board(); // Display the initial empty board.
+    for (int i = 1; i <= 9; i++)
+    {
+        if (i % 2 == 1)
+        {
+            printf("Player 1 Input (X) =  ");
+            int input = valid_input();
+            // Validate and process player 1's input (X).
+            // Check for a win condition after each move.
+            for (; input == 0;)
+            {
+
+                printf("Sorry again  input  = ");
+                input = valid_input();
+            }
+            square[input] = 'X';
+            board();
+            ans = checkwin();
+            if (ans == 1)
+            {
+                printf(" Player 1 Win \n");
+                break;
+            }
+        }
+        else
+        {
+            printf(" Player 2 Input (0) =  ");
+            int input = valid_input();
+            // Validate and process player 2's input (O).
+            // Check for a win condition after each move.
+            for (; input == 0;)
+            {
+
+                printf(" Sorry worng again  input  = ");
+                input = valid_input();
+            }
+            square[input] = '0';
+            board();
+            int ans = checkwin();
+            if (ans == 1)
+            {
+                printf(" Player 2 Win \n");
+            }
+        }
+    }
+    if (ans == 0)
+    {
+        printf("Draw \n");
+    }
+}
+//input for tic tac toe
+int valid_input()
+{
+    int value;
+    printf("Enter a number between 1 and 9: ");
+    scanf("%d", &value);
+
+    // Clear the input buffer
+    fflush(stdin);
+
+    // Check if the entered value is between 1 and 9
+    if (value >= 1 && value <= 9)
+    {
+        // Check if the square is available
+        if (square[value] == 'X' || square[value] == '0')
+        {
+            printf("Square %d is already taken. Choose another square.\n", value);
+            return 0; // Square is taken
+        }
+        return value; // Valid input
+    }
+    else
+    {
+        printf("Invalid input. Please enter a number between 1 and 9.\n");
+        return 0; // Invalid input
+    }
+}
+
+
+
+// Function to initialize the Tic Tac Toe board
+void sieve()
+{
+    for (int i = 1; i <= 9; i++)
+    {
+        square[i] = '0' + i;
+    }
+}
+
+// Function to display the Tic Tac Toe board
+void board()
+{
+    system("cls");
+    printf("\n\n\tTic Tac Toe\n\n");
+    // Display the current state of the board.
+    // The board is represented using characters 'X', 'O', or digits '1' to '9'.
+
+    printf("     |     |     \n");
+    printf("  %c  |  %c  |  %c \n", square[1], square[2], square[3]);
+
+    printf("_____|_____|_____\n");
+    printf("     |     |     \n");
+
+    printf("  %c  |  %c  |  %c \n", square[4], square[5], square[6]);
+
+    printf("_____|_____|_____\n");
+    printf("     |     |     \n");
+
+    printf("  %c  |  %c  |  %c \n", square[7], square[8], square[9]);
+
+    printf("     |     |     \n\n");
+}
+
+int checkwin()
+{
+    // Check all possible win conditions on the board.
+    // If any of these conditions are met, return 1 (indicating a win for the current player).
+    // Otherwise, return 0 (no winner yet).
+    if (square[1] == square[2] && square[2] == square[3])
+        return 1;
+    else if (square[4] == square[5] && square[5] == square[6])
+        return 1;
+    else if (square[7] == square[8] && square[8] == square[9])
+        return 1;
+    else if (square[1] == square[4] && square[4] == square[7])
+        return 1;
+    else if (square[2] == square[5] && square[5] == square[8])
+        return 1;
+    else if (square[3] == square[6] && square[6] == square[9])
+        return 1;
+    else if (square[1] == square[5] && square[5] == square[9])
+        return 1;
+    else if (square[3] == square[5] && square[5] == square[7])
+        return 1;
+    else
+        return 0;
+}
+//// snack game
+
+
+// Constants for screen dimensions
+#define WIDTH 20
+#define HEIGHT 10
+
+// Constants for game elements
+#define PLAYER 'O'
+#define SNACK '$'
+#define BORDER '*'
+
+int playerX, playerY;
+int snacksCollected = 0;
+int snacksToWin = 5; // Set the number of snacks to win
+
+char screen[HEIGHT][WIDTH];
+
+// Function to initialize the game screen
+void initializeScreen()
+{
+    for (int i = 0; i < HEIGHT; i++)
+    {
+        for (int j = 0; j < WIDTH; j++)
+        {
+            if (i == 0 || i == HEIGHT - 1 || j == 0 || j == WIDTH - 1)
+            {
+                screen[i][j] = BORDER;
+            }
+            else
+            {
+                screen[i][j] = ' ';
+            }
+        }
+    }
+}
+
+// Function to place snacks randomly on the screen
+void placeSnacks()
+{
+    int x, y;
+
+    do
+    {
+        x = rand() % (WIDTH - 2) + 1;
+        y = rand() % (HEIGHT - 2) + 1;
+    }
+    while (screen[y][x] != ' ');
+
+    screen[y][x] = SNACK;
+}
+
+// Function to display the game screen
+void displayScreen()
+{
+    system("cls"); // Clear the screen (for Windows, use "clear" for Unix-like systems)
+
+    for (int i = 0; i < HEIGHT; i++)
+    {
+        for (int j = 0; j < WIDTH; j++)
+        {
+            printf("%c", screen[i][j]);
+        }
+        printf("\n");
+    }
+    printf("Snacks collected: %d / %d\n", snacksCollected, snacksToWin);
+    printf("Use '8' to move up, '4' to move left, '6' to move right, '2' to move down, and 'q' to quit.\n");
+}
+
+// Function to move the player
+int movePlayer(char direction)
+{
+    int newX = playerX, newY = playerY;
+
+    switch (direction)
+    {
+    case '8': // Up
+        newY--;
+        break;
+    case '4': // Left
+        newX--;
+        break;
+    case '6': // Right
+        newX++;
+        break;
+    case '2': // Down
+        newY++;
+        break;
+    }
+
+    // Check if the new position is within the screen boundaries
+    if (newX >= 1 && newX < WIDTH - 1 && newY >= 1 && newY < HEIGHT - 1)
+    {
+        // Check if the new position is a snack
+        if (screen[newY][newX] == SNACK)
+        {
+            snacksCollected++;
+            placeSnacks();
+
+            // Check for the winning condition
+            if (snacksCollected == snacksToWin)
+            {
+                displayScreen();
+                printf("Congratulations! You collected all the snacks and won the game!\n");
+                return 1; // Player won
+            }
+        }
+
+        // Move the player to the new position
+        screen[playerY][playerX] = ' ';
+        playerX = newX;
+        playerY = newY;
+        screen[playerY][playerX] = PLAYER;
+    }
+
+    return 0; // Player didn't win
+}
+// Function to play the Snack game
+void playSnackGame()
+{
+    initializeScreen();
+    playerX = WIDTH / 2;
+    playerY = HEIGHT / 2;
+    screen[playerY][playerX] = PLAYER;
+    placeSnacks();
+    int playerWon = 0;
+    printf("Welcome to the Snack Game!\n");
+    printf("Collect %d snacks to win.\n", snacksToWin);
+    printf("Use '8', '4', '6', and '2' to move, and 'q' to quit.\n");
+
+    do
+    {
+        displayScreen();
+        char input = _getch(); // Read a character from the keyboard
+        if (input == 'q')
+        {
+            printf("Game over! You quit the game.\n");
+            break; // Quit the game if 'q' is pressed
+        }
+
+        playerWon = movePlayer(input);
+
+        if (playerWon)
+        {
+            break; // Exit the game loop if the player has won
+        }
+    } while (1); // Continue playing until explicitly quitting
+}
+
+//////maze game
+#define ROWS 10
+#define COLS 10
+
+// Maze representation
+char maze[ROWS][COLS] = {
+    "##########",
+    "#S #     #",
+    "#  # ### #",
+    "#  #     #",
+    "#  ## #  #",
+    "# #   #  #",
+    "#   # # ##",
+    "#####   ##",
+    "#    # ###",
+    "######  E#"
+};
+
+// Player's position
+int playerRow = 1;
+int playerCol = 1;
+
+// Function to print the maze
+void printMaze() {
+    system("cls"); // Clear the screen for Windows, use "clear" for Unix-based systems
+
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            if (i == playerRow && j == playerCol) {
+                printf("P");
+            } else {
+                printf("%c", maze[i][j]);
+            }
+        }
+        printf("\n");
+    }
+}
+
+// Function to play the maze game
+void playMazeGame() {
+    char move;
+    int exitRow, exitCol;
+
+    // Find the exit coordinates
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            if (maze[i][j] == 'E') {
+                exitRow = i;
+                exitCol = j;
+            }
+        }
+    }
+
+    printf("Welcome to the Maze Game!\n");
+    printMaze();
+
+    while (1) {
+        printf("Enter a movement (8 for up, 4 for left, 6 for right, 2 for down, or q to quit): ");
+        move = getch(); // Get a key press
+
+        // Update player position based on input
+        switch (move) {
+            case '8':
+                if (playerRow > 0 && maze[playerRow - 1][playerCol] != '#') {
+                    playerRow--;
+                }
+                break;
+            case '4':
+                if (playerCol > 0 && maze[playerRow][playerCol - 1] != '#') {
+                    playerCol--;
+                }
+                break;
+            case '6':
+                if (playerCol < COLS - 1 && maze[playerRow][playerCol + 1] != '#') {
+                    playerCol++;
+                }
+                break;
+            case '2':
+                if (playerRow < ROWS - 1 && maze[playerRow + 1][playerCol] != '#') {
+                    playerRow++;
+                }
+                break;
+            case 'q':
+                printf("Game over! You quit the game.\n");
+                exit(0);
+        }
+
+        printMaze();
+
+        // Check if the player has reached the exit
+        if (playerRow == exitRow && playerCol == exitCol) {
+            printf("Congratulations! You've reached the exit!\n");
+            break;
+        }
+    }
+}
+//about
+void about()
+{
+    printf("\n\n\nThis is a project under CSE103 \nThe project is about a gaming portal where user can create account and play game\n");
+    printf("The project is create by 3 team member \n");
+    printf("Name: MD.Abid sarkar\nID:2020-1-60-196\n");
+    printf("Name: Afsana Hossain Esha\nID:2020-1-60-075\n");
+    printf("Name: Md. Al Ehtesum Korim\nID:2019-3-60-094\n\n\n\n");
+    return main();
+}
+// The main function
+int main()
+{
+    int choice;
+    printf("Welcome to the Game Center\n");
+
+    do
+    {
+        printf("1. Create Account\n");
+        printf("2. Login\n");
+        printf("3. About the devloper and project\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+        case 1:
+            createAccount(); // This will now return to the main program
+            break;
+        case 2:
+            if (login())
+            {
+                // Logged in successfully, show options
+                int gameChoice;
+                do
+                {
+                    printf("\nLogged in successfully!\n");
+                    printf("1. Tic Tac Toe\n");
+                    printf("2. Snack Game\n");
+                    printf("3. Puzzle Game\n");
+                    printf("4. Back to the login page\n");
+                    printf("5. Exit\n");
+                    printf("Enter your choice: ");
+                    scanf("%d", &gameChoice);
+
+                    switch (gameChoice)
+                    {
+                    case 1:
+                        // Implement the Tic Tac Toe game
+                        sieve();
+                        HUMAN_TO_HUMAN();
+                        break;
+                    case 2:
+                        // Implement the Snack game
+                        playSnackGame();
+                        break;
+                    case 3:
+                        // Implement maze game
+                        playMazeGame();
+                        break;
+                    case 4:
+                        printf("Back to the login page.\n");
+                        break;
+                    case 5:
+                        printf("Exit.\n");
+                        return 0;
+                        break;
+                    default:
+                        printf("Invalid choice. Please try again.\n");
+                        break;
+                    }
+                } while (gameChoice != 4);
+            }
+            else
+            {
+                printf("Login failed. Invalid credentials.\n");
+            }
+            break;
+        case 3:
+            printf("About the devloper.\n");
+            about();
+            break;
+        case 4:
+            printf("Exiting the program.\n");
+            break;
+        default:
+            printf("Invalid choice. Please try again.\n");
+            break;
+        }
+    } while (choice != 3);
+    return 0;
+}
